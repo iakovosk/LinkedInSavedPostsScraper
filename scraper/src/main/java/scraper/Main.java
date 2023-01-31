@@ -121,27 +121,28 @@ public class Main {
 		//so we use this method to always maintain the order and thus the latest post scraped
 		LinkedHashMap<String, String[]> toAdd = parseAndKeepEveryPostUrn(doc.text());
 		
-		String[] parts = doc.text().split("Post could not be unsaved");
+		String[] parts = doc.text().split("Impossible de retirer le post"); //English: Post could not be unsaved
+
+		Pattern pattern = Pattern.compile("ImageAttribute\"}],\"accessibilityText\":\"(.*?)\"");
+		Pattern pattern2 = Pattern.compile("fs_updateV2:\\(urn:li:activity:(.*?),");
+		Pattern pattern3 = Pattern.compile("\"summary\":\\{\"textDirection\":\"USER_LOCALE\",\"text\":\"(.*?)\",\"attributesV2\"");
 
 		for(String post : parts) {
-			Pattern pattern = Pattern.compile("ImageAttribute\"}],\"accessibilityText\":\"(.*?)\"");
 			Matcher matcher = pattern.matcher(post);
 			String link, text, author;
 			if (matcher.find())
 			{
 				author = matcher.group(0).substring(39,matcher.group(0).length()-1);
 
-				Pattern pattern2 = Pattern.compile("fs_updateV2:\\(urn:li:activity:(.*?),");
 				Matcher matcher2 = pattern2.matcher(post);
 				if (matcher2.find()) {
 					//https://www.linkedin.com/feed/update/urn:li:activity:6994308509831995392/
 					link = "https://www.linkedin.com/feed/update/urn:li:activity:" + matcher2.group(0).substring(29, matcher2.group(0).length()-1);
 
-					Pattern pattern3 = Pattern.compile("\"summary\":\\{\"textDirection\":\"USER_LOCALE\",\"text\":\"(.*?)\",\"attributesV2\"");
 					Matcher matcher3 = pattern3.matcher(post);
 					if (matcher3.find()) {
-						text = matcher3.group(0).substring(49, matcher3.group(0).length()-15).replaceAll("\\\\uD[a-zA-Z0-9]{3}", " ").replaceAll("\\\\n", " ").replace("\\", "\\\\");
-						//						System.out.println(text);
+						text = matcher3.group(0).substring(49, matcher3.group(0).length()-15).replaceAll("\\\\uD[a-zA-Z0-9]{3}", " ").replaceAll("\\\\n", " ").replace("\\", "\\\\").replace("\\\"", "\"");
+						//System.out.println(text);
 						if(toAdd.containsKey(link)) {
 							toAdd.put(link, new String[] {author, text});
 						}
